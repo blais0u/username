@@ -19,8 +19,10 @@ type Twitter struct {
 var legalCharRegexp = regexp.MustCompile(reg)
 
 func init() {
-	var tw = Twitter{}
-	username.SocialNetWorks = append(username.SocialNetWorks, &tw)
+	for index := 0; index < 10; index++ {
+		var tw = Twitter{}
+		username.SocialNetWorks = append(username.SocialNetWorks, &tw)
+	}
 }
 func isLongEnough(pseudo string) bool {
 	var nb = utf8.RuneCountInString(pseudo)

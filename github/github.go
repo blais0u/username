@@ -1,6 +1,7 @@
 package github
 
 import (
+	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -22,12 +23,12 @@ func init() {
 	username.SocialNetWorks = append(username.SocialNetWorks, &git)
 }
 
-//prefix et suffix illegaux : -
+//prefix et suffix illegaux : -go get _u
 // patern illegal -
 // min 1
 // max 39
-func isLongEnough(username string) bool {
-	var nb = utf8.RuneCountInString(username)
+func isLongEnough(pseudo string) bool {
+	var nb = utf8.RuneCountInString(pseudo)
 
 	if nb > min {
 		return true
@@ -35,8 +36,8 @@ func isLongEnough(username string) bool {
 	return false
 }
 
-func isShortEnough(username string) bool {
-	var nb = utf8.RuneCountInString(username)
+func isShortEnough(pseudo string) bool {
+	var nb = utf8.RuneCountInString(pseudo)
 
 	if nb < max {
 		return true
@@ -44,22 +45,40 @@ func isShortEnough(username string) bool {
 	return false
 }
 
-func onlyContainsLegalChars(username string) bool {
-	return legalCharRegexp.MatchString(username)
+func onlyContainsLegalChars(pseudo string) bool {
+	return legalCharRegexp.MatchString(pseudo)
 }
 
-func containsNoIllegalPattern(username string) bool {
-	return !strings.HasPrefix(username, "-") &&
-		!strings.HasSuffix(username, "-") &&
-		!strings.Contains(username, "_") &&
-		!strings.Contains(username, "--")
+func containsNoIllegalPattern(pseudo string) bool {
+	return !strings.HasPrefix(pseudo, "-") &&
+		!strings.HasSuffix(pseudo, "-") &&
+		!strings.Contains(pseudo, "_") &&
+		!strings.Contains(pseudo, "--")
 
 }
 
-func (*GitHub) Validate(username string) bool {
-	return isLongEnough(username) &&
-		containsNoIllegalPattern(username) &&
-		onlyContainsLegalChars(username) &&
-		isShortEnough(username) &&
-		isLongEnough(username)
+func (*GitHub) Validate(pseudo string) bool {
+	return isLongEnough(pseudo) &&
+		containsNoIllegalPattern(pseudo) &&
+		onlyContainsLegalChars(pseudo) &&
+		isShortEnough(pseudo) &&
+		isLongEnough(pseudo)
+}
+func (*GitHub) IsAvailable(pseudo string) (ok bool, err error) {
+	resp, err := http.Get("https://github.com/" + pseudo)
+	if err != nil {
+		//read response status
+		errAvail := username.ErrAvailibility{
+			Cause:         err,
+			SocialWebsite: "GitHub",
+		}
+		return false, &errAvail
+	}
+
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return true, err
+	}
+
+	return false, err
 }
