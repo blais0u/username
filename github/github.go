@@ -18,7 +18,8 @@ type GitHub struct {
 }
 
 func init() {
-	username.SocialNetWorks = append(username.SocialNetWorks, &GitHub{})
+	var git = GitHub{}
+	username.SocialNetWorks = append(username.SocialNetWorks, &git)
 }
 
 //prefix et suffix illegaux : -
